@@ -25,6 +25,9 @@ PyTorch 구현 (CVPR 2014 논문 재현)
 
 ---
 
+##   시각화 결과
+![images](images/final_test_results.png)
+
 ##   모델 구조
 
 ### 네트워크 아키텍처
