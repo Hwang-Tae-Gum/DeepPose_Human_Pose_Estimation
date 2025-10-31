@@ -1,8 +1,18 @@
 # DeepPose: Human Pose Estimation via Deep Neural Networks
 
-PyTorch 구현 (CVPR 2014 논문 재현)
 
----
+##   원본 논문 정보
+
+- **제목**: DeepPose: Human Pose Estimation via Deep Neural Networks
+- **저자**: Alexander Toshev, Christian Szegedy (Google)
+- **학회**: IEEE Conference on Computer Vision and Pattern Recognition (CVPR 2014)
+- **발표**: 2014년 6월 23-28일, Columbus, OH, USA
+- **논문 링크**: [IEEE Xplore](https://ieeexplore.ieee.org/document/6909610)
+
+## 프로젝트 목적
+본 구현은 Human Pose Estimation 분야를 학습하고 실습해보기 위해, 
+대표적인 논문인 DeepPose를 PyTorch로 직접 재현하는 프로젝트 입니다.
+
 
 ##   최종 결과
 
@@ -19,11 +29,8 @@ PyTorch 구현 (CVPR 2014 논문 재현)
 | 방법 | PDJ@0.2 | 비고 |
 |------|---------|------|
 | 원본 논문 (2014) | ~82% | ImageNet pre-training 사용 |
-| 본 구현 | **40.07%** | Pre-training 없음 |
+| 본 구현 | 40.07% | Pre-training 없음 |
 
-논문 대비 **약 49%** 수준 달성 (첫 구현치고 합리적인 결과)
-
----
 
 ##   시각화 결과
 ![images](images/final_test_results.png)
@@ -57,21 +64,19 @@ Stage 2: 전체 이미지 → 개선된 pose (독립적)
 Stage 3: 전체 이미지 → 최종 pose (독립적)
 ```
 
-**  현재 구현의 한계**: 
+### 현재 구현의 한계: 
 - 각 Stage가 독립적으로 학습됨
 - 원본 논문의 cascade 구조 (이전 stage 예측 활용) 미구현
 - 결과적으로 Stage 2가 가장 좋은 성능 (과적합 전)
 
----
 
 ##   데이터셋
-
 ### FLIC (Frames Labeled In Cinema)
 
-- **학습 데이터**: 3,987 이미지
-- **검증 데이터**: 1,016 이미지
-- **관절 수**: 10개 (상체)
-  - 어깨, 팔꿈치, 손목, 힙, 눈 (좌/우)
+- 학습 데이터: 3,987 이미지
+- 검증 데이터: 1,016 이미지
+- 관절 수: 10개 (상체)
+- 어깨, 팔꿈치, 손목, 힙, 눈 (좌/우)
 
 ### 데이터 증강
 
@@ -87,7 +92,7 @@ Stage 3: 전체 이미지 → 최종 pose (독립적)
 - 좌우 반전
 - 랜덤 크롭
 
----
+
 
 ##   하이퍼파라미터
 
@@ -128,7 +133,7 @@ SIGMA = 1.0
 - Patience: 10 epochs
 - 기준: Validation loss
 
----
+
 
 ##   학습 과정
 
@@ -152,9 +157,9 @@ SIGMA = 1.0
 - 시간: ~10시간
 - 결과: PDJ 38.07% (과적합 징후)
 
-**총 학습 시간**: ~19시간 (GPU 1개)
+**총 학습 시간**: ~19시간 (GPU 1개, Google Colab T4 GPU)
 
----
+
 
 ##   주요 문제 해결
 
@@ -200,7 +205,6 @@ Stage 3: crop(image, pose2) → pose3 ✓
 **영향**: 
 - Stage들이 독립적인 pose estimator로 작동
 - Stage 2가 최고 성능 (학습과 과적합의 균형점)
-- 재학습 시 40시간 추가 소요되어 미구현
 
 ### 3. 좌표 정규화
 
@@ -228,13 +232,13 @@ PDJ@0.2 = 오차 < (torso 직경 × 0.2)인 관절 비율
 ### PCP (Percentage of Correct Parts)
 
 ```
-PCP@0.5 = 양 끝점이 정확한 사지 비율
+PCP@0.5 = 양 끝점이 정확한 limb 비율
 ```
 
-- 표준 임계값: 0.5 (사지 길이의 50%)
+- 표준 임계값: 0.5 (limb 길이의 50%)
 - 본 구현: **32.01%**
 
----
+
 
 ##   시각화 결과
 
@@ -249,7 +253,7 @@ PCP@0.5 = 양 끝점이 정확한 사지 비율
 - 낮은 조명
 - 가림 현상
 
----
+
 
 ##   논문과의 차이점
 
@@ -270,47 +274,6 @@ PCP@0.5 = 양 끝점이 정확한 사지 비율
 | Learning rate | 0.0005 | 0.00005 |
 | 최종 PDJ@0.2 | ~82% | **40.07%** |
 
----
-
-### 환경 설정
-
-```bash
-# 의존성 설치
-pip install torch torchvision numpy matplotlib scipy tqdm Pillow
-
-# FLIC 데이터셋 다운로드 및 배치
-# 경로: /content/drive/MyDrive/DeepPose_Dataset/FLIC/
-```
-
-### 학습 실행
-
-```python
-# 전체 파이프라인 실행
-python deeppose_train.ipynb
-
-# 자동으로:
-# 1. FLIC 데이터셋 로드
-# 2. Stage 1, 2, 3 순차 학습 (체크포인트 있으면 로드)
-# 3. 전체 Stage 평가
-# 4. 시각화 생성
-```
-
-### 추론
-
-```python
-from models import DeepPoseNetwork
-
-# 모델 로드 (Stage 2 - 최고 성능)
-model = DeepPoseNetwork(num_joints=10)
-checkpoint = torch.load('checkpoints/Stage2_best.pth')
-model.load_state_dict(checkpoint['model_state_dict'])
-model.eval()
-
-# 예측
-with torch.no_grad():
-    joints = model(image)  # 정규화된 좌표
-    joints_pixel = joints * 220  # 픽셀 단위
-```
 
 ##   개선 방향
 
